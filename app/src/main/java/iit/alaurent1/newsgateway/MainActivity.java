@@ -107,7 +107,16 @@ public class MainActivity extends AppCompatActivity {
         pageAdapter = new MyPageAdapter(getSupportFragmentManager());
         pager = (ViewPager) findViewById(R.id.viewpager);
         pager.setAdapter(pageAdapter);
-        pager.setBackgroundResource(R.drawable.img_bgnews);
+        pager.setOffscreenPageLimit(10);
+        if (savedInstanceState!=null){
+            for(int i =0; i<savedInstanceState.getInt("size");i++) {
+                fragments.add(getSupportFragmentManager().getFragment(savedInstanceState, "NewsFragment" + Integer.toString(i)));
+            }
+        } else {
+            pager.setBackgroundResource(R.drawable.img_bgnews);
+        }
+        pageAdapter.notifyDataSetChanged();
+
     }
 
     // Drawer handler
@@ -267,6 +276,18 @@ public class MainActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
 
         super.onSaveInstanceState(savedInstanceState);
+        int compteur = 0;
+        for(int i =0; i< fragments.size();i++) {
+            if (fragments.get(i).isAdded()) {
+                compteur++;
+                String test = "NewsFragment" + Integer.toString(i);
+                getSupportFragmentManager()
+                        .putFragment(savedInstanceState, test, fragments.get(i));
+                Log.d("FRAGMENTS SAVE :", Integer.toString(i));
+            }
+
+        }
+        savedInstanceState.putInt("size",compteur);
     }
 
     @Override
