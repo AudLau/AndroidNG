@@ -25,9 +25,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import static android.R.attr.key;
 import static android.R.attr.src;
 import android.support.v7.app.AlertDialog;
 
@@ -66,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter1 = new IntentFilter(ACTION_NEWS_STORY);
         registerReceiver(newsReceiver, filter1);
 
-
         // Set the Drawer  Layout
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -92,8 +94,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Start the category and source download
         if (networkCheck()) {
-            NewsSourcesDownloader nsdl = new NewsSourcesDownloader(this, "");
-            nsdl.execute();
+            if(savedInstanceState!=null){
+                setTitle(savedInstanceState.getCharSequence("title"));
+                setSources((ArrayList<Source>)savedInstanceState.getSerializable("sourcelist"), savedInstanceState.getStringArrayList("categorylist"));
+            } else {
+                NewsSourcesDownloader nsdl = new NewsSourcesDownloader(this, "");
+                nsdl.execute();
+            }
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("No network connection");
@@ -125,13 +132,11 @@ public class MainActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
     }
-
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
@@ -139,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    // Menu handler
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -167,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
 
         sourcemap.clear();
         sourcenamelist.clear();
+        Collections.sort(sourcelist);
         for(Source s: sourcelist){
             sourcenamelist.add(s.getName());
             sourcemap.put(s.getName(), s);
@@ -175,11 +182,25 @@ public class MainActivity extends AppCompatActivity {
 
         if (this.categorylist == null){
             this.categorylist = new ArrayList<>(categorylist);
-            this.categorylist.add(0, "all");
-            for(String c : this.categorylist){
+            if(menu!=null) {
+                this.categorylist.add(0, "all");
+                for (String c : this.categorylist) {
+                    menu.add(c);
+                }
+            }
+        }
+
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (this.categorylist != null) {
+            menu.clear();
+            for (String c : this.categorylist) {
                 menu.add(c);
             }
         }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     // Fragments handler
@@ -191,7 +212,6 @@ public class MainActivity extends AppCompatActivity {
     private class MyPageAdapter extends FragmentPagerAdapter {
         private long baseId = 0;
 
-
         public MyPageAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -200,22 +220,18 @@ public class MainActivity extends AppCompatActivity {
         public int getItemPosition(Object object) {
             return POSITION_NONE;
         }
-
         @Override
         public Fragment getItem(int position) {
             return fragments.get(position);
         }
-
         @Override
         public int getCount() {
             return fragments.size();
         }
-
         @Override
         public long getItemId(int position) {
             return baseId + position;
         }
-
         public void notifyChangeInPosition(int n) {
             baseId += getCount() + n;
         }
@@ -260,7 +276,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    // Check the network connection
     public boolean networkCheck() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
@@ -271,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//TODO save when rotate
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
 
@@ -280,21 +294,24 @@ public class MainActivity extends AppCompatActivity {
         for(int i =0; i< fragments.size();i++) {
             if (fragments.get(i).isAdded()) {
                 compteur++;
-                String test = "NewsFragment" + Integer.toString(i);
+                String temp = "NewsFragment" + Integer.toString(i);
                 getSupportFragmentManager()
-                        .putFragment(savedInstanceState, test, fragments.get(i));
+                        .putFragment(savedInstanceState, temp, fragments.get(i));
                 Log.d("FRAGMENTS SAVE :", Integer.toString(i));
             }
 
         }
         savedInstanceState.putInt("size",compteur);
-    }
 
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putStringArrayList("categorylist", categorylist );
 
-        super.onRestoreInstanceState(savedInstanceState);
+        ArrayList<Source> temp = new ArrayList<>();
+        for (String key : sourcemap.keySet()) {
+           temp.add(sourcemap.get(key));
+        }
+        savedInstanceState.putSerializable("sourcelist", temp );
 
+        savedInstanceState.putCharSequence("title", getTitle());
     }
 
 }

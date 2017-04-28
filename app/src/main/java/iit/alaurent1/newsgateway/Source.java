@@ -3,7 +3,7 @@ package iit.alaurent1.newsgateway;
 
 import java.io.Serializable;
 
-public class Source implements Serializable{
+public class Source implements Serializable, Comparable<Source> {
 
     private String id;
     private String name;
@@ -43,6 +43,10 @@ public class Source implements Serializable{
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public int compareTo(Source other) {
+        return name.compareTo(other.name);
     }
 
 
