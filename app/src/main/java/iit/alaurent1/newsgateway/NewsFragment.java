@@ -1,6 +1,8 @@
 package iit.alaurent1.newsgateway;
 
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -25,6 +27,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
     public static final String DATA_INDICE = "DATA_INDICE";
     public static final String DATA_TOTAL = "DATA_TOTAL";
     private Article article;
+    ImageView article_img;
 
     public static final NewsFragment newInstance(Article article, String indice, String total)
     {
@@ -49,7 +52,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
         TextView article_date = (TextView)v.findViewById(R.id.article_date);
         TextView article_preview = (TextView)v.findViewById(R.id.article_preview);
         TextView article_count = (TextView)v.findViewById(R.id.article_count);
-        ImageView article_img = (ImageView)v.findViewById(R.id.article_img);
+        article_img = (ImageView)v.findViewById(R.id.article_img);
 
         article_title.setOnClickListener(this);
         article_preview.setOnClickListener(this);
@@ -95,7 +98,8 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
 
     private void loadPhoto(String url, View v){
 
-        final ImageView article_img = (ImageView)v.findViewById(R.id.article_img);
+        Log.d(TAG,"LOADING PHOTO");
+
 
         Picasso picasso = new Picasso.Builder(this.getContext())
                 .listener(new Picasso.Listener() {
@@ -133,7 +137,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
+        
         //Save the fragment's state here
     }
 }

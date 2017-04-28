@@ -40,32 +40,35 @@ public class NewsService extends Service {
         registerReceiver(serviceReceiver, filter1);
 
 
-        new Thread(new Runnable() {
+        /*new Thread(new Runnable() {
             @Override
             public void run() {
 
                 while(running){
                     while(articleslist.isEmpty()) {
+                        Log.d(TAG,"Waiting ArticleList not empty");
                         try {
                             Thread.sleep(250);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
+                    Log.d(TAG,"ArticleList not empty");
                     Intent intent = new Intent(ACTION_NEWS_STORY);
                     intent.putExtra(DATA_ARTICLE, (Serializable) articleslist);
                     sendBroadcast(intent);
                     articleslist.clear();
                 }
             }
-        }).start();
+        }).start();*/
 
         return Service.START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Service Destroyed", Toast.LENGTH_SHORT).show();
+        Log.d(TAG,"SERVICE DESTROYED");
         unregisterReceiver(serviceReceiver);
         running = false;
         super.onDestroy();
@@ -74,8 +77,15 @@ public class NewsService extends Service {
     public void setArticles(ArrayList<Article> list) {
         articleslist.clear();
         articleslist = new ArrayList<>(list);
+        sendIntent();
     }
 
+    private void sendIntent(){
+        Intent intent = new Intent(ACTION_NEWS_STORY);
+        intent.putExtra(DATA_ARTICLE, (Serializable) articleslist);
+        sendBroadcast(intent);
+        articleslist.clear();
+    }
 
     public class ServiceReceiver extends BroadcastReceiver {
 
